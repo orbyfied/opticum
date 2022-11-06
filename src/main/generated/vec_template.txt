@@ -1,0 +1,21 @@
+{IMPORTS}
+
+/*
+    Generated. 
+    Type: {TY} ({T})
+    Dimensions: {D}
+*/
+public class {N} {
+    {TY} {COMP_DECL_ALL};
+
+    public {N}() { }
+
+    public {N}({COMP_ALL_ARGS}) {
+        {COMP_ALL_SET}
+    }
+
+    {COMP_SETTERS}
+    {COMP_GETTERS}
+
+    {REST}
+}

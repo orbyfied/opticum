@@ -1,0 +1,12 @@
+# IDE
+/.idea/
+
+# Gradle
+.gradle/
+gradle.properties
+/gradle/wrapper/gradle-wrapper.jar
+
+# Builds
+*.jar
+*.class
+build/
