@@ -36,6 +36,9 @@ public abstract class RenderInput {
     public float mouseDX;
     public float mouseDY;
 
+    // mouse scroll
+    public float scrollDelta;
+
     // mouse buttons
     public float[] mouseButtons;
 
@@ -56,6 +59,7 @@ public abstract class RenderInput {
         // prepare for update
         mouseDX = 0;
         mouseDY = 0;
+        scrollDelta = 0;
 
         // update
         update0();

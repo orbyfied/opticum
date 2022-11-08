@@ -5,7 +5,7 @@ vec_comp_chars = [ 'x', 'y', 'z', 'w' ]
 def write_vec_source(dim, t, tchar):
     # create class name
     classname  = "Vec" + str(dim) + tchar
-    package    = "net.orbyfied.optium.util"
+    package    = "net.orbyfied.opticum.util"
     fullcl, fp = _gencodelib.class_src_location(package, classname)
 
     comps = vec_comp_chars[0:dim]

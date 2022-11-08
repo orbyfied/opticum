@@ -19,6 +19,9 @@ public abstract class RenderWorker {
 
     /** Builder for basic functionality */
     public static abstract class Builder<W extends RenderWorker> {
+        public Builder(RenderDriver driver) { this.driver = driver; }
+        protected final RenderDriver driver;
+
         public abstract W build();
     }
 
@@ -62,6 +65,15 @@ public abstract class RenderWorker {
 
         // create context
         return provider.createContext(this);
+    }
+
+    List<RenderContext> toRemove = new ArrayList<>();
+    protected void scheduleRemove(RenderContext context) {
+        toRemove.add(context);
+
+        // check if it should stop
+        if (contextsEnabled.isEmpty())
+            setActive(false);
     }
 
     // the render timing
@@ -111,6 +123,12 @@ public abstract class RenderWorker {
                 for (int i = 0; i < l; i++) {
                     RenderContext context = contexts.get(i);
                     context.update();
+                }
+
+                // remove contexts that need to be
+                for (RenderContext rem : toRemove) {
+                    contexts.remove(rem);
+                    contextsEnabled.remove(rem);
                 }
             }
         } catch (Exception e) {

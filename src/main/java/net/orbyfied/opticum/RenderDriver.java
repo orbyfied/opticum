@@ -18,8 +18,25 @@ public abstract class RenderDriver<W extends RenderWorker, WB extends RenderWork
     // registered drivers
     private static final Map<Class<? extends RenderDriver>, RenderDriver> drivers = new HashMap<>();
 
+    /**
+     * Registers the driver.
+     * @param driver The driver.
+     */
+    protected static void register(RenderDriver driver) {
+        drivers.put(driver.getClass(), driver);
+    }
+
     @SuppressWarnings("unchecked")
     public static <D extends RenderDriver> D get(Class<D> dClass) {
+        // make sure to load the class
+        // to call the static block
+        try {
+            Class.forName(dClass.getName());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // get driver
         return (D) drivers.get(dClass);
     }
 
@@ -37,7 +54,7 @@ public abstract class RenderDriver<W extends RenderWorker, WB extends RenderWork
      * @param <B> The base class type.
      * @param <P> The platform class type.
      */
-    public static abstract class ContextProvider<B extends RenderContext, P extends B> {
+    public static class ContextProvider<B extends RenderContext, P extends B> {
 
         public ContextProvider(Class<B> baseType,
                                Class<P> platformType,
@@ -73,8 +90,8 @@ public abstract class RenderDriver<W extends RenderWorker, WB extends RenderWork
     final Map<Class<? extends RenderContext>, ContextProvider>
             contextImpls = new HashMap<>();
 
-    public void withContextProvider(Class<? extends RenderContext> k, ContextProvider f) {
-        contextImpls.put(k, f);
+    public void withContextProvider(ContextProvider f) {
+        contextImpls.put(f.getBaseType(), f);
     }
 
     public <B extends RenderContext, P extends B> ContextProvider<B, P> getContextProvider(Class<B> bClass) {

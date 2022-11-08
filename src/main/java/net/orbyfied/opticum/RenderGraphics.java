@@ -1,5 +1,7 @@
 package net.orbyfied.opticum;
 
+import net.orbyfied.opticum.util.Vec2f;
+
 import java.nio.ByteBuffer;
 
 /**
@@ -18,6 +20,21 @@ public abstract class RenderGraphics {
 
     ///////////////////////////////////////////////
 
+    /* Vertex Builder */
+
+    // vertex field values
+    protected byte[]   vfvByte;
+    protected short[]  vfvShort;
+    protected int[]    vfvInt;
+    protected long[]   vfvLong;
+    protected float[]  vfvFloat;
+    protected double[] vfvDouble;
+    protected Object[] vfvRef;
+
+    /* Graphics */
+
+    public static final int INIT_VERTEX_BUFFER_SIZE = 2048;
+
     // the context
     protected final RenderContext context;
     // the driver
@@ -25,7 +42,10 @@ public abstract class RenderGraphics {
 
     protected RenderGraphics(RenderContext context) {
         this.context = context;
-        this.driver  = context.driver();
+        if (context == null)
+            driver = null;
+        else
+            this.driver  = context.driver();
     }
 
     public RenderContext context() {
@@ -44,7 +64,7 @@ public abstract class RenderGraphics {
     /**
      * The intermediate vertex data buffer.
      */
-    protected ByteBuffer vertexDataBuffer;
+    protected ByteBuffer vertexDataBuffer = ByteBuffer.allocateDirect(INIT_VERTEX_BUFFER_SIZE);
 
     /**
      * The current primitive to draw.
@@ -53,7 +73,7 @@ public abstract class RenderGraphics {
 
     // check if there is a vertex format
     private void checkVertexFormat() {
-        if (vertexFormat != null)
+        if (vertexFormat == null)
             throw new IllegalStateException("No vertex format has been assigned.");
     }
 
@@ -67,7 +87,23 @@ public abstract class RenderGraphics {
      * @param format The format.
      */
     public void vertexFormat(VertexFormat format) {
+        VertexFormat oldFormat = this.vertexFormat;
         this.vertexFormat = format;
+
+        // check if we have just set a new format
+        if (oldFormat != format) {
+            // reallocate vertex field value arrays
+            vfvByte = new byte[vertexFormat.fByte.size()];
+            vfvShort = new short[vertexFormat.fShort.size()];
+            vfvInt = new int[vertexFormat.fInt.size()];
+            vfvLong = new long[vertexFormat.fLong.size()];
+            vfvFloat = new float[vertexFormat.fFloat.size()];
+            vfvDouble = new double[vertexFormat.fDouble.size()];
+            vfvRef = new Object[vertexFormat.fRef.size()];
+
+            // switch format
+            switchVertexFormat(oldFormat, vertexFormat);
+        }
     }
 
     /**
@@ -79,6 +115,13 @@ public abstract class RenderGraphics {
     }
 
     /**
+     * Called when switching the vertex format to a new one.
+     * @param oldFormat The old format.
+     * @param newFormat The new format (already set).
+     */
+    protected abstract void switchVertexFormat(VertexFormat oldFormat, VertexFormat newFormat);
+
+    /**
      * Begin drawing vertices.
      * @param primitive The primitive to draw.
      * @param allocate The amount of vertices to allocate.
@@ -86,8 +129,10 @@ public abstract class RenderGraphics {
      */
     public void begin(Primitive primitive, int allocate) {
         checkVertexFormat();
-        this.primitive        = primitive;
-        this.vertexDataBuffer = ByteBuffer.allocateDirect(vertexFormat.size * allocate);
+        this.primitive = primitive;
+        if (allocate > vertexDataBuffer.capacity())
+            this.vertexDataBuffer = ByteBuffer.allocateDirect(vertexFormat.size * allocate);
+        this.vertexDataBuffer.position(0);
     }
 
     /**
@@ -96,7 +141,7 @@ public abstract class RenderGraphics {
      */
     public void begin(Primitive primitive) {
         begin(primitive,
-                /* allocate 2 vertices, minimum for a line */ 2);
+                /* pre allocate 8 vertices */ 8);
     }
 
     /**
@@ -105,17 +150,20 @@ public abstract class RenderGraphics {
      */
     public void end() {
         // draw vertex data
-        drawArrays();
+        int len = vertexDataBuffer.position() + 1;
+        vertexDataBuffer.position(0);
+        drawBuffer(vertexDataBuffer, len, len / vertexFormat.size);
 
         // clean up
-        this.vertexDataBuffer = null;
+        // we dont discard the buffer because it can be reused
+        this.vertexDataBuffer.position(0);
         this.primitive = null;
     }
 
     /**
      * Draws the current vertex data.
      */
-    protected abstract void drawArrays();
+    protected abstract void drawBuffer(ByteBuffer buffer, int bytes, int verts);
 
     /**
      * Start building a new vertex.
@@ -125,14 +173,35 @@ public abstract class RenderGraphics {
         return new VertexBuilder(this);
     }
 
-    // appends a new vertex to the
-    // vertex data buffer
-    protected void appendVertex(VertexBuilder v) {
+    /**
+     * Start building a new vertex at the specified position.
+     * @param x The X position.
+     * @param y The Y position.
+     * @return The vertex builder.
+     */
+    public VertexBuilder vertex2d(float x, float y) {
+        return new VertexBuilder(this).pos2d(x, y);
+    }
+
+    /**
+     * Start building a new vertex at the specified position.
+     * @param pos The position.
+     * @return The vertex builder.
+     */
+    public VertexBuilder vertex2d(Vec2f pos) {
+        return new VertexBuilder(this).pos2d(pos);
+    }
+
+    /**
+     * Appends a new vertex to the data buffer.
+     * @param v The vertex.
+     */
+    public void append(VertexBuilder v) {
         // check if we have enough capacity for another vertex
         int currCap = vertexDataBuffer.capacity();
-        if (currCap < vertexFormat.size) {
+        if ((currCap - vertexDataBuffer.position()) < vertexFormat.size) {
             // allocate new buffer
-            int newCap = currCap * 2;
+            int newCap = (int)((currCap + vertexFormat.size) * 1.5);
             ByteBuffer newBuf = ByteBuffer.allocateDirect(newCap);
 
             // copy data from old buffer to new
@@ -144,6 +213,20 @@ public abstract class RenderGraphics {
 
         // write vertex to buffer
         vertexFormat.write(v, vertexDataBuffer);
+    }
+
+    // create a new debug instance
+    // used to access otherwise inaccessible data
+    public Debug debug() {
+        return new Debug();
+    }
+
+    /////////////////////////////////////////////////////
+
+    public class Debug {
+        public ByteBuffer getVertexDataBuffer() {
+            return vertexDataBuffer;
+        }
     }
 
 }

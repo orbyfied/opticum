@@ -1,0 +1,68 @@
+plugins {
+    // java plugins
+    id 'java'
+    id 'java-library'
+}
+
+apply from: '../module.gradle', to: project
+
+// Properties
+group   'net.orbyfied.opticum'
+version '0.1.0'
+
+/*
+    Dependencies
+ */
+
+repositories {
+    mavenCentral()
+    maven { url "https://s01.oss.sonatype.org/content/repositories/releases/" }
+}
+
+project.ext.lwjglVersion = "3.3.1"
+
+dependencies {
+    // API
+    api project(":")
+
+    // platforms
+    // LWJGL
+    api platform("org.lwjgl:lwjgl-bom:$lwjglVersion")
+    api "org.lwjgl:lwjgl"
+    api "org.lwjgl:lwjgl-opengl"
+    api "org.lwjgl:lwjgl-glfw"
+    api "org.lwjgl:lwjgl-jawt"
+    api "org.lwjgl:lwjgl-jemalloc"
+    api "org.lwjgl:lwjgl-stb"
+
+    String[] oses = new String[] {
+            "linux",
+            "windows",
+            "macos"
+    }
+
+    for (String os : oses) {
+        String lwjglNatives = "natives-" + os;
+
+        // include dependencies
+        runtimeOnly "org.lwjgl:lwjgl::$lwjglNatives"
+        runtimeOnly "org.lwjgl:lwjgl-glfw::$lwjglNatives"
+        runtimeOnly "org.lwjgl:lwjgl-jemalloc::$lwjglNatives"
+        runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglNatives"
+        runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglNatives"
+    }
+}
+
+/*
+    Test Configuration
+ */
+
+dependencies {
+    // Testing
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+}
+
+test {
+    useJUnitPlatform()
+}
