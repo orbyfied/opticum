@@ -1,5 +1,8 @@
 package net.orbyfied.opticum;
 
+import net.orbyfied.opticum.shader.Program;
+import net.orbyfied.opticum.shader.Shader;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,6 +43,52 @@ public abstract class RenderContext {
         this.active.set(active);
     }
 
+    /*
+        Render Layers
+     */
+
+    /**
+     * Inserts a render layer at the correct position.
+     * @param layer The layer.
+     */
+    public void withLayer(RenderLayer layer) {
+        // insert into the correct position
+        int pos = layer.pos;
+        if (pos != -1) {
+            if (pos >= layerList.size())
+                for (int i = 0; i < (pos - layerList.size()); i++)
+                    layerList.add(null);
+            layerList.add(pos, layer);
+        } else {
+            layerList.add(layer);
+            layer.pos = layerList.size() - 1;
+        }
+
+        // insert by name
+        layerMap.put(layer.name, layer);
+    }
+
+    /**
+     * Get a render layer by name.
+     * @param name The name.
+     * @return The layer or null if absent.
+     */
+    public RenderLayer layer(String name) {
+        return layerMap.get(name);
+    }
+
+    /**
+     * Get all layer timings of the last frame.
+     * @return The map.
+     */
+    public Map<RenderLayer, Float> frameLayerTimings() {
+        return layerTimes;
+    }
+
+    /*
+        Updates and Status
+     */
+
     // updates this context
     // called by the worker every frame
     protected void update() {
@@ -73,6 +122,9 @@ public abstract class RenderContext {
                 }
             }
         }
+
+        // end update
+        endUpdate();
     }
 
     // prepares this context
@@ -112,8 +164,9 @@ public abstract class RenderContext {
         worker.scheduleRemove(this);
     }
 
-    /* Called at the start of an update. */
+    /* Called on update. */
     protected abstract void startUpdate();
+    protected abstract void endUpdate();
     protected abstract void pollEvents();
 
     /* Called for preparation. */
@@ -124,30 +177,23 @@ public abstract class RenderContext {
     /* Called to disable the context. */
     protected abstract void onDisable();
 
-    public void withLayer(RenderLayer renderer) {
-        // insert into the correct position
-        int pos = renderer.pos;
-        if (pos != -1) {
-            if (pos >= layerList.size())
-                for (int i = 0; i < (pos - layerList.size()); i++)
-                    layerList.add(null);
-            layerList.add(pos, renderer);
-        } else {
-            layerList.add(renderer);
-            renderer.pos = layerList.size() - 1;
-        }
+    /*
+        Shaders and Shader Programs
+     */
 
-        // insert by name
-        layerMap.put(renderer.name, renderer);
-    }
+    /**
+     * Create and allocate a new shader of the
+     * specified type.
+     * @param type The type of shader.
+     * @return The shader.
+     */
+    public abstract Shader newShader(Shader.ShaderType type);
 
-    public RenderLayer layer(String name) {
-        return layerMap.get(name);
-    }
-
-    public Map<RenderLayer, Float> frameLayerTimings() {
-        return layerTimes;
-    }
+    /**
+     * Create and allocate a new shader program.
+     * @return The shader program.
+     */
+    public abstract Program newProgram();
 
     /*
         Getters and setters.

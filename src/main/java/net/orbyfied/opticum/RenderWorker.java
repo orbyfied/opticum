@@ -70,10 +70,6 @@ public abstract class RenderWorker {
     List<RenderContext> toRemove = new ArrayList<>();
     protected void scheduleRemove(RenderContext context) {
         toRemove.add(context);
-
-        // check if it should stop
-        if (contextsEnabled.isEmpty())
-            setActive(false);
     }
 
     // the render timing
@@ -130,6 +126,10 @@ public abstract class RenderWorker {
                     contexts.remove(rem);
                     contextsEnabled.remove(rem);
                 }
+
+                // check if it should stop
+                if (contextsEnabled.isEmpty())
+                    setActive(false);
             }
         } catch (Exception e) {
             // TODO: handle error
@@ -170,6 +170,11 @@ public abstract class RenderWorker {
     /*
         Getters and setters.
      */
+
+    public RenderWorker withRenderTiming(RenderTiming timing) {
+        this.timing = timing;
+        return this;
+    }
 
     public boolean isActive() {
         return active.get();

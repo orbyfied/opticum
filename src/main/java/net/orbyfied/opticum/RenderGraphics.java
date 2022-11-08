@@ -1,5 +1,6 @@
 package net.orbyfied.opticum;
 
+import net.orbyfied.opticum.shader.Program;
 import net.orbyfied.opticum.util.Vec2f;
 
 import java.nio.ByteBuffer;
@@ -120,6 +121,12 @@ public abstract class RenderGraphics {
      * @param newFormat The new format (already set).
      */
     protected abstract void switchVertexFormat(VertexFormat oldFormat, VertexFormat newFormat);
+
+    /**
+     * Binds a shader program to be used.
+     * @param program The shader program.
+     */
+    public abstract void useProgram(Program program);
 
     /**
      * Begin drawing vertices.

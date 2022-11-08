@@ -37,9 +37,9 @@ public class VertexFormat {
         FLOAT(4, false),
         DOUBLE(8, false),
 
-        VEC2(FLOAT.size * 2, true),
-        VEC3(FLOAT.size * 3, true),
-        VEC4(FLOAT.size * 4, true);
+        VEC2(FLOAT.size * 2, true, 2, FLOAT),
+        VEC3(FLOAT.size * 3, true, 3, FLOAT),
+        VEC4(FLOAT.size * 4, true, 4, FLOAT);
 
         int size;
         boolean isReferenceValue;

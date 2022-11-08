@@ -3,8 +3,11 @@ package net.orbyfied.opticum.platform.lwjgl;
 import net.orbyfied.opticum.RenderContext;
 import net.orbyfied.opticum.RenderGraphics;
 import net.orbyfied.opticum.VertexFormat;
+import net.orbyfied.opticum.shader.Program;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.GL40;
 
 import java.nio.ByteBuffer;
 
@@ -63,8 +66,13 @@ public class GLGraphics extends RenderGraphics {
             int len = type.getLength();
 
             // set attribute pointer
-            GL20.glVertexAttribPointer(i, len, pt, field.isNormalized(), 0, (ByteBuffer)null);
+            GL20.glVertexAttribPointer(i, len, pt, field.isNormalized(), 0, 0);
         }
+    }
+
+    @Override
+    public void useProgram(Program program) {
+        GL30.glUseProgram(((GLProgram)program).handle);
     }
 
     @Override
@@ -73,7 +81,7 @@ public class GLGraphics extends RenderGraphics {
         GL20.glBindBuffer(GL20.GL_ARRAY_BUFFER, vbo);
 
         // upload data
-        GL20.glBufferData(vbo, buffer, bytes);
+        GL20.glBufferData(GL30.GL_ARRAY_BUFFER, buffer, GL20.GL_STATIC_DRAW);
         int mode = switch (primitive) {
             case QUADS -> GL_QUADS;
             case TRIANGLES -> GL_TRIANGLES;

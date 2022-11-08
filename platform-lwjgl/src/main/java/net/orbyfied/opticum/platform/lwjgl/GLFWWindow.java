@@ -29,6 +29,10 @@ public class GLFWWindow extends Window {
      */
     protected Map<Integer, Integer> enableHints = new HashMap<>();
 
+    public long getHandle() {
+        return handle;
+    }
+
     public GLFWWindow setMonitor(long monitor) {
         this.monitor = monitor;
         return this;

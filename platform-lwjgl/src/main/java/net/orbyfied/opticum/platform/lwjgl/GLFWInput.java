@@ -11,8 +11,12 @@ public class GLFWInput extends RenderInput {
         // set callbacks
         GLFW.glfwSetCursorPosCallback(context.window().handle,
                 ((window, xPos, yPos) -> {
-                    System.out.println(xPos);
-                    System.out.println(yPos);
+                    this.mouseX  = (float) xPos;
+                    this.mouseY  = (float) yPos;
+                    this.mouseDX = mouseX - lastMouseX;
+                    this.mouseDY = mouseY - lastMouseY;
+                    this.lastMouseX = mouseX;
+                    this.lastMouseY = mouseY;
                 }));
     }
 

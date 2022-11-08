@@ -50,11 +50,15 @@ public abstract class RenderTiming {
             // check if we should wait
             if (maxRate != -1 && dt < minTime) {
                 float wait = dt - minTime;
-                sleep((int)(wait * 1_000), /* kinda todo more precise */ 0);
+                if (wait > 0)
+                    sleep((int)(wait * 1_000), /* kinda todo more precise */ 0);
             }
 
             // set delta time
             this.dt = dt;
+
+            // set last time
+            this.lastTime = currTime;
 
             // always update after yielding
             return true;

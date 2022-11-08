@@ -31,6 +31,8 @@ public abstract class RenderInput {
     protected final RenderContext context;
 
     // mouse position
+    public float lastMouseX;
+    public float lastMouseY;
     public float mouseX;
     public float mouseY;
     public float mouseDX;
