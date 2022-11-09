@@ -21,11 +21,13 @@ public class GLGraphics extends RenderGraphics {
     }
 
     protected int vbo;
+    protected int vao;
 
     // initialize the graphics
     private void init() {
         // allocate vertex buffer
         vbo = GL20.glGenBuffers();
+        vao = GL40.glGenVertexArrays();
     }
 
     @Override
@@ -41,7 +43,7 @@ public class GLGraphics extends RenderGraphics {
     @Override
     protected void switchVertexFormat(VertexFormat oldFormat, VertexFormat newFormat) {
         // set vertex attribute pointers
-        GL20.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo);
+        GL40.glBindVertexArray(vao);
         VertexFormat.FieldLocal[] fls = newFormat.getFields();
         for (int i = 0; i < fls.length; i++) {
             // get field and type
@@ -66,8 +68,10 @@ public class GLGraphics extends RenderGraphics {
             int len = type.getLength();
 
             // set attribute pointer
-            GL20.glVertexAttribPointer(i, len, pt, field.isNormalized(), 0, 0);
+            GL40.glVertexAttribPointer(i, len, pt, field.isNormalized(), 0, 0);
         }
+
+        GL40.glBindVertexArray(0);
     }
 
     @Override
@@ -78,15 +82,22 @@ public class GLGraphics extends RenderGraphics {
     @Override
     protected void drawBuffer(ByteBuffer buffer, int bytes, int verts) {
         // bind buffer
-        GL20.glBindBuffer(GL20.GL_ARRAY_BUFFER, vbo);
+        GL40.glBindVertexArray(vao);
+        GL40.glBindBuffer(GL20.GL_ARRAY_BUFFER, vbo);
 
         // upload data
-        GL20.glBufferData(GL30.GL_ARRAY_BUFFER, buffer, GL20.GL_STATIC_DRAW);
+        buffer.flip();
+        GL40.glBufferData(GL30.GL_ARRAY_BUFFER, buffer, GL20.GL_STATIC_DRAW);
         int mode = switch (primitive) {
             case QUADS -> GL_QUADS;
             case TRIANGLES -> GL_TRIANGLES;
         };
-        GL20.glDrawArrays(mode, 0, verts);
+
+        GL40.glDrawArrays(mode, 0, verts);
+
+        // unbind
+        GL40.glBindVertexArray(0);
+        GL40.glBindBuffer(GL20.GL_ARRAY_BUFFER, 0);
     }
 
 }

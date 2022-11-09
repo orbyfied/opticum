@@ -39,6 +39,7 @@ public abstract class RenderTiming {
 
         // last time
         long lastTime;
+        long lastTimeFull;
 
         @Override
         public boolean yieldAndCheck() {
@@ -46,16 +47,21 @@ public abstract class RenderTiming {
             long  currTime = System.nanoTime();
             long  diffNS   = currTime - lastTime;
             float dt       = diffNS / 1_000_000_000f;
+            float fdt      = (currTime - lastTimeFull) / 1_000_000_000f;
+
+            // set full last time
+            lastTimeFull = System.nanoTime();
 
             // check if we should wait
             if (maxRate != -1 && dt < minTime) {
-                float wait = dt - minTime;
+                float wait = minTime - dt;
                 if (wait > 0)
                     sleep((int)(wait * 1_000), /* kinda todo more precise */ 0);
             }
 
             // set delta time
-            this.dt = dt;
+            this.dt     = dt;
+            this.fullDt = fdt;
 
             // set last time
             this.lastTime = currTime;
@@ -78,6 +84,8 @@ public abstract class RenderTiming {
 
     // delta time accessible
     protected Float dt;
+    // full delta time
+    protected Float fullDt;
 
     /**
      * Return the delta time or null
@@ -87,6 +95,16 @@ public abstract class RenderTiming {
      */
     public Float getDeltaTime() {
         return dt;
+    }
+
+    /**
+     * Return the total delta time or null
+     * if the timing does not measure
+     * the delta time.
+     * @return Total delta time in seconds.
+     */
+    public Float getFullDeltaTime() {
+        return fullDt;
     }
 
     /**

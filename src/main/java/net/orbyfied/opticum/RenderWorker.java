@@ -161,7 +161,7 @@ public abstract class RenderWorker {
         if (shouldUpdate) {
             if (timing.getDeltaTime() != null) {
                 dt  = timing.getDeltaTime();
-                fps = 1f / dt;
+                fps = 1f / timing.getFullDeltaTime();
             }
         }
         return shouldUpdate;
@@ -174,6 +174,10 @@ public abstract class RenderWorker {
     public RenderWorker withRenderTiming(RenderTiming timing) {
         this.timing = timing;
         return this;
+    }
+
+    public RenderTiming timing() {
+        return timing;
     }
 
     public boolean isActive() {

@@ -52,14 +52,15 @@ public class Basic2DTest {
 
             // start drawing a triangle
             graphics.begin(RenderGraphics.Primitive.TRIANGLES);
-            graphics.vertex2d(0.25f, 0.25f).end();
-            graphics.vertex2d(0.75f, 0.25f).end();
-            graphics.vertex2d(0.5f,  0.75f).end();
+            graphics.vertex2d(-0.5f, -0.5f).end();
+            graphics.vertex2d(+0.5f, -0.5f).end();
+            graphics.vertex2d(+0f,   +0.5f).end();
             graphics.end();
         }));
 
         context.withLayer(RenderLayer.simple("window", (context1, graphics, input, dt) -> {
-            GLFW.glfwSetWindowTitle(((GLFWWindow)context.window()).getHandle(), "Test | DT: " + worker.dt + ", FPS: " + worker.fps);
+            GLFW.glfwSetWindowTitle(((GLFWWindow)context.window()).getHandle(), "Test | DT: "
+                    + worker.timing().getDeltaTime() + ", FPS: " + worker.fps);
         }));
 
         // start worker

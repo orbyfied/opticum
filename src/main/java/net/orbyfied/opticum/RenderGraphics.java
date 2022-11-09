@@ -139,6 +139,7 @@ public abstract class RenderGraphics {
         this.primitive = primitive;
         if (allocate > vertexDataBuffer.capacity())
             this.vertexDataBuffer = ByteBuffer.allocateDirect(vertexFormat.size * allocate);
+        this.vertexDataBuffer.limit(vertexDataBuffer.capacity());
         this.vertexDataBuffer.position(0);
     }
 
