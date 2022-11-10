@@ -54,6 +54,12 @@ public abstract class RenderGraphics {
     }
 
     /*
+        Implementation
+     */
+
+    protected abstract ByteBuffer allocateByteBuffer(int cap);
+
+    /*
         Graphics
      */
 
@@ -65,12 +71,17 @@ public abstract class RenderGraphics {
     /**
      * The intermediate vertex data buffer.
      */
-    protected ByteBuffer vertexDataBuffer = ByteBuffer.allocateDirect(INIT_VERTEX_BUFFER_SIZE);
+    protected ByteBuffer vertexDataBuffer = allocateByteBuffer(INIT_VERTEX_BUFFER_SIZE);
 
     /**
      * The current primitive to draw.
      */
     protected Primitive primitive;
+
+    /**
+     * The amount of vertices that have been appended.
+     */
+    protected int vertices;
 
     // check if there is a vertex format
     private void checkVertexFormat() {
@@ -138,7 +149,7 @@ public abstract class RenderGraphics {
         checkVertexFormat();
         this.primitive = primitive;
         if (allocate > vertexDataBuffer.capacity())
-            this.vertexDataBuffer = ByteBuffer.allocateDirect(vertexFormat.size * allocate);
+            this.vertexDataBuffer = allocateByteBuffer(vertexFormat.vertexSize * allocate);
         this.vertexDataBuffer.limit(vertexDataBuffer.capacity());
         this.vertexDataBuffer.position(0);
     }
@@ -159,13 +170,13 @@ public abstract class RenderGraphics {
     public void end() {
         // draw vertex data
         int len = vertexDataBuffer.position() + 1;
-        vertexDataBuffer.position(0);
-        drawBuffer(vertexDataBuffer, len, len / vertexFormat.size);
+        drawBuffer(vertexDataBuffer, len, vertices);
 
         // clean up
         // we dont discard the buffer because it can be reused
         this.vertexDataBuffer.position(0);
         this.primitive = null;
+        this.vertices  = 0;
     }
 
     /**
@@ -207,10 +218,10 @@ public abstract class RenderGraphics {
     public void append(VertexBuilder v) {
         // check if we have enough capacity for another vertex
         int currCap = vertexDataBuffer.capacity();
-        if ((currCap - vertexDataBuffer.position()) < vertexFormat.size) {
+        if ((currCap - vertexDataBuffer.position()) < vertexFormat.vertexSize) {
             // allocate new buffer
-            int newCap = (int)((currCap + vertexFormat.size) * 1.5);
-            ByteBuffer newBuf = ByteBuffer.allocateDirect(newCap);
+            int newCap = (int)((currCap + vertexFormat.vertexSize) * 1.5);
+            ByteBuffer newBuf = allocateByteBuffer(newCap);
 
             // copy data from old buffer to new
             newBuf.put(vertexDataBuffer);
@@ -221,6 +232,9 @@ public abstract class RenderGraphics {
 
         // write vertex to buffer
         vertexFormat.write(v, vertexDataBuffer);
+
+        // increment vertices
+        vertices++;
     }
 
     // create a new debug instance

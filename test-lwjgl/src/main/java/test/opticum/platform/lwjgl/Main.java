@@ -1,18 +1,15 @@
 package test.opticum.platform.lwjgl;
 
 import net.orbyfied.opticum.*;
-import net.orbyfied.opticum.platform.lwjgl.*;
+import net.orbyfied.opticum.platform.lwjgl.GLFWWindow;
+import net.orbyfied.opticum.platform.lwjgl.LWJGLRenderDriver;
+import net.orbyfied.opticum.platform.lwjgl.LWJGLRenderWorker;
 import net.orbyfied.opticum.shader.Program;
 import net.orbyfied.opticum.shader.Shader;
-import net.orbyfied.opticum.util.Vec3f;
-import net.orbyfied.opticum.util.Vec4f;
 import net.orbyfied.opticum.window.WindowRenderContext;
-import org.junit.jupiter.api.Test;
 import org.lwjgl.glfw.GLFW;
 
-import java.io.File;
-
-public class Basic2DTest {
+public class Main {
 
     private static final VertexFormat FORMAT_2D =
             VertexFormat.builder()
@@ -20,8 +17,7 @@ public class Basic2DTest {
                     .with(VertexFormat.FIELD_COL)
                     .build();
 
-    @Test
-    void main() {
+    public static void main(String[] args) {
         // get driver
         LWJGLRenderDriver driver = RenderDriver.get(LWJGLRenderDriver.class);
         // get worker
@@ -40,11 +36,10 @@ public class Basic2DTest {
         // compile shaders
         Program shader = context.newProgram()
                 .withShader(context.newShader(Shader.ShaderType.VERTEX)
-                        .compileSource(Basic2DTest.class.getResourceAsStream("/test.vsh")))
+                        .compileSource(Main.class.getResourceAsStream("/test.vsh")))
                 .withShader(context.newShader(Shader.ShaderType.FRAGMENT)
-                        .compileSource(Basic2DTest.class.getResourceAsStream("/test.fsh")))
-                .link()
-                .cleanShaders();
+                        .compileSource(Main.class.getResourceAsStream("/test.fsh")))
+                .link();
 
         // register renderer
         context.withLayer(RenderLayer.simple("primary", (__, graphics, input, dt) -> {

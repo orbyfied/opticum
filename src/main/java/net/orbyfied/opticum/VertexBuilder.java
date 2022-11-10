@@ -125,11 +125,11 @@ public class VertexBuilder {
     }
 
     public VertexBuilder pos3d(Vec3f vec) {
-        return setReference(VertexFormat.FIELD_POS3D, vec);
+        return setReference(VertexFormat.FIELD_COL, vec);
     }
 
     public VertexBuilder col(float r, float g, float b, float a) {
-        return setReference(VertexFormat.FIELD_POS3D, new Vec4f(r, g, b, a));
+        return setReference(VertexFormat.FIELD_COL, new Vec4f(r, g, b, a));
     }
 
     public VertexBuilder col(Vec4f vec) {

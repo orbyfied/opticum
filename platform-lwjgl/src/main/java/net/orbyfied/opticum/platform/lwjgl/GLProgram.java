@@ -6,6 +6,7 @@ import net.orbyfied.opticum.shader.ProgramLinkException;
 import net.orbyfied.opticum.shader.Shader;
 import net.orbyfied.opticum.shader.ShaderCompileException;
 import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.GL30;
 
 public class GLProgram extends Program {
 
@@ -18,7 +19,7 @@ public class GLProgram extends Program {
     }
 
     // the handle to the program
-    protected int handle;
+    public int handle;
 
     @Override
     public Program link() {

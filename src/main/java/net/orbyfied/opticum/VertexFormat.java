@@ -5,7 +5,6 @@ import net.orbyfied.opticum.util.Vec3f;
 import net.orbyfied.opticum.util.Vec4f;
 
 import java.nio.ByteBuffer;
-import java.sql.Ref;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -48,7 +47,10 @@ public class VertexFormat {
         FieldType element;
 
         FieldType(int size, boolean isReferenceValue, int len, FieldType element) {
-            this.size = size;
+            if (size != -1)
+                this.size = size;
+            else
+                this.size = element.size * len;
             this.isReferenceValue = isReferenceValue;
             this.element = element;
             this.len = len;
@@ -197,7 +199,7 @@ public class VertexFormat {
 
     VertexFormat(Field[] fields) {
         this.fields = new FieldLocal[fields.length];
-        this.size   = calculateSize(fields);
+        this.vertexSize = calculateSize(fields);
 
         // map all fields
         this.fieldIds = new int[Field.uidAcc];
@@ -228,7 +230,7 @@ public class VertexFormat {
     }
 
     // the size of the whole struct
-    protected final int size;
+    protected final int vertexSize;
     // the fields
     protected final FieldLocal[] fields;
 
@@ -242,6 +244,10 @@ public class VertexFormat {
     protected List<Field> fFloat = new ArrayList<>();
     protected List<Field> fDouble = new ArrayList<>();
 
+    public int getVertexSize() {
+        return vertexSize;
+    }
+
     public int getTypeLocalFieldID(Field field) {
         return fieldIds[field.uid];
     }
@@ -252,7 +258,7 @@ public class VertexFormat {
      * @return The buffer.
      */
     public ByteBuffer allocateBuffer() {
-        return ByteBuffer.allocateDirect(size);
+        return ByteBuffer.allocateDirect(vertexSize);
     }
 
     public ByteBuffer serialize(VertexBuilder vertex) {

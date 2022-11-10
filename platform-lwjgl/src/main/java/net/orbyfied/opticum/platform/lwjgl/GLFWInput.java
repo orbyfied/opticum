@@ -2,6 +2,7 @@ package net.orbyfied.opticum.platform.lwjgl;
 
 import net.orbyfied.opticum.RenderInput;
 import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.GLFWKeyCallbackI;
 
 public class GLFWInput extends RenderInput {
 
@@ -18,6 +19,10 @@ public class GLFWInput extends RenderInput {
                     this.lastMouseX = mouseX;
                     this.lastMouseY = mouseY;
                 }));
+
+        GLFW.glfwSetKeyCallback(context.window().handle, (window, key, scancode, action, mods) -> {
+            // TODO
+        });
     }
 
     @Override
@@ -34,11 +39,6 @@ public class GLFWInput extends RenderInput {
     protected void update0() {
         GLFWWindowRenderContext context = (GLFWWindowRenderContext) this.context;
         long window = context.window().handle;
-
-        // for each key
-        for (int k = 0; k < keys.length; k++) {
-            keys[k] = GLFW.glfwGetKey(window, k) == GLFW.GLFW_PRESS ? 0 : -1;
-        }
 
         // for each mouse button
         for (int b = 0; b < mouseButtons.length; b++) {

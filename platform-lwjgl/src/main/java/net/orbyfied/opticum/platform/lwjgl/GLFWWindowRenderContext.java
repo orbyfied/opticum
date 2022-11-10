@@ -5,7 +5,10 @@ import net.orbyfied.opticum.shader.Program;
 import net.orbyfied.opticum.shader.Shader;
 import net.orbyfied.opticum.window.WindowRenderContext;
 import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.*;
+
+import java.io.PrintStream;
 
 public class GLFWWindowRenderContext extends WindowRenderContext<GLFWWindow> implements GLContextLike {
 
@@ -14,6 +17,9 @@ public class GLFWWindowRenderContext extends WindowRenderContext<GLFWWindow> imp
 
         // init glfw
         GLFW.glfwInit();
+
+        // init error callbacks
+        GLFW.glfwSetErrorCallback(GLFWErrorCallback.createPrint(System.out));
     }
 
     protected GLCapabilities glCapabilities;
@@ -36,10 +42,13 @@ public class GLFWWindowRenderContext extends WindowRenderContext<GLFWWindow> imp
     @Override
     protected void startUpdate() {
         switchContext();
+        GL30.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        GL30.glClear(GL30.GL_COLOR_BUFFER_BIT);
     }
 
     @Override
     protected void endUpdate() {
+        switchContext();
         GLFW.glfwSwapInterval(0);
         GLFW.glfwSwapBuffers(window.handle);
     }

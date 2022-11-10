@@ -1,0 +1,73 @@
+plugins {
+    // for shading in dependencies
+    id "com.github.johnrengelman.shadow" version "7.1.2"
+}
+
+ext {
+    isApp         = true
+    mainClassName = "test.opticum.platform.lwjgl.Main"
+}
+
+apply from: '../module.gradle', to: project
+
+// Properties
+group   'net.orbyfied.opticum'
+version '0.1.0'
+
+/*
+    Dependencies
+ */
+
+repositories {
+    mavenCentral()
+    maven { url "https://s01.oss.sonatype.org/content/repositories/releases/" }
+}
+
+project.ext.lwjglVersion = "3.3.1"
+
+dependencies {
+    // API
+    implementation project(":")
+    implementation project(":platform-lwjgl")
+
+    // platforms
+    // LWJGL
+    implementation platform("org.lwjgl:lwjgl-bom:$lwjglVersion")
+    implementation "org.lwjgl:lwjgl"
+    implementation "org.lwjgl:lwjgl-opengl"
+    implementation "org.lwjgl:lwjgl-glfw"
+    implementation "org.lwjgl:lwjgl-jawt"
+    implementation "org.lwjgl:lwjgl-jemalloc"
+    implementation "org.lwjgl:lwjgl-stb"
+
+    String[] oses = new String[] {
+            "linux",
+            "windows",
+            "macos"
+    }
+
+    for (String os : oses) {
+        String lwjglNatives = "natives-" + os;
+
+        // include dependencies
+        runtimeOnly "org.lwjgl:lwjgl::$lwjglNatives"
+        runtimeOnly "org.lwjgl:lwjgl-glfw::$lwjglNatives"
+        runtimeOnly "org.lwjgl:lwjgl-jemalloc::$lwjglNatives"
+        runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglNatives"
+        runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglNatives"
+    }
+}
+
+/*
+    Test Configuration
+ */
+
+dependencies {
+    // Testing
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+}
+
+test {
+    useJUnitPlatform()
+}

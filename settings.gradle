@@ -1,3 +1,4 @@
 rootProject.name = 'opticum'
 include 'platform-lwjgl'
+include 'test-lwjgl'
 

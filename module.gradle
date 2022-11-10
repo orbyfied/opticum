@@ -1,3 +1,180 @@
+import java.nio.charset.StandardCharsets
+
+/*
+    Utilities
+ */
+
+boolean hasPublishing() {
+    return project.hasProperty("hasPublishing") && project.hasPublishing
+}
+
+boolean isApplication() {
+    return project.hasProperty("isApp") && project.isApp
+}
+
+boolean hasTesting() {
+    return project.hasProperty("hasTesting") && project.hasTesting
+}
+
+boolean hasShadow() {
+    return project.plugins.hasPlugin("com.github.johnrengelman.shadow")
+}
+
+/*
+    Core
+ */
+
+// Apply Core Plugins
+apply plugin: 'java'
+apply plugin: 'java-library'
+
+if (project.getPlugins().hasPlugin("com.github.johnrengelman.shadow")) {
+    apply plugin: 'com.github.johnrengelman.shadow'
+}
+
+// Apply Publishing Plugins
+if (hasPublishing()) {
+    apply plugin: 'maven-publish'
+    apply plugin: 'signing'
+}
+
+// Properties
+group rootProject.group
+
+/*
+    Library Listing
+ */
+
+boolean hasLibraryListing() {
+    return project.hasProperty("listLibraries") && project.listLibraries
+}
+
+ext {
+    libraryList = new ArrayList<>();
+
+    includeListLibrary = (Object... notation) -> {
+        // check for length
+        if (notation.length == 0)
+            return new Object[0];
+
+        // add library string
+        String str = notation[0];
+        libraryList.add(str)
+
+        // return rest of notation
+        Object[] res = new Object[notation.length - /*1*/ 0];
+        System.arraycopy(notation, /*1*/ 0, res, 0, res.length);
+        return res;
+    }
+}
+
+if (hasLibraryListing()) {
+    task('buildLibraryListing') {
+        doLast {
+            // Build JSON
+            StringBuilder jsonStr = new StringBuilder("{\"libraryList\" : [");
+            for (String lib : libraryList)
+                jsonStr.append("\"" + lib + "\",");
+            if (libraryList.size() != 0)
+                jsonStr.deleteCharAt(jsonStr.length() - 1);
+            jsonStr.append("]}");
+
+            // Write Resource
+            final String fileName = "libraryList.json"
+            final File file = new File(sourceSets.main.output.resourcesDir, fileName);
+            try {
+                if (!file.getParentFile().exists())
+                    file.getParentFile().mkdirs();
+                if (!file.exists())
+                    file.createNewFile();
+                FileOutputStream stream = new FileOutputStream(file);
+                stream.write(jsonStr.toString().getBytes(StandardCharsets.UTF_8));
+                stream.close();
+            } catch (IOException e) {
+                System.err.println("[" + project.name + "/buildLibraryListing" + "] Failed to write JSON to resource file");
+                System.err.println("  Path: " + file);
+                e.printStackTrace();
+            }
+        }
+    }
+
+    tasks.build.dependsOn(tasks.buildLibraryListing)
+}
+
+java {
+    // Set To Java 17
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+}
+
+/*
+    Dependencies
+ */
+
+repositories {
+    // maven central of course
+    mavenCentral()
+
+    // it didnt work at first
+    // had to include ossrh manually
+    maven {
+        url "https://s01.oss.sonatype.org/content/repositories/releases/"
+    }
+}
+
+dependencies {
+    // Test Dependencies
+    if (hasTesting()) {
+        // test dependencies
+        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+    }
+
+    // Core Libraries
+    api 'it.unimi.dsi:fastutil:8.5.8'
+
+    api 'net.orbyfied.j8:j8-registry:0.1.0'
+    api 'net.orbyfied.j8:j8-util:0.2.1.1_hotfix2'
+    api 'net.orbyfied.j8:j8-event:0.1.0_hotfix1'
+}
+
+/*
+    Testing
+ */
+
+if (hasTesting()) {
+    test {
+        useJUnitPlatform()
+    }
+}
+
+/*
+    Application
+ */
+
+if (isApplication()) {
+    // Build Manifest
+    var j = hasShadow() ? tasks.getByName("shadowJar") : tasks.getByName("jar")
+    j.manifest {
+        // Add Main Class
+        if (project.hasProperty("mainClassName")) {
+            attributes 'Main-Class': project.mainClassName
+        }
+
+        // Add Agent
+        if (project.hasProperty("agentClassName")) {
+            attributes 'Agent-Class': project.agentClassName
+            attributes 'Can-Redefine-Classes': true
+            attributes 'Can-Retransform-Classes': true
+
+            if (project.hasProperty("premainClassName")) {
+                attributes 'Premain-Class': project.premainClassName
+            } else {
+                attributes 'Premain-Class': project.agentClassName
+            }
+        }
+    }
+}
+
 /*
     Generated Sources
  */
