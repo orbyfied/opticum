@@ -2,6 +2,8 @@
 
 in layout(location = 0) vec4 fColor;
 
+out vec4 outColor;
+
 void main() {
-    gl_FragColor = fColor;
+    outColor = fColor;
 }

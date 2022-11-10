@@ -59,6 +59,9 @@ public class GLFWWindow extends Window {
         for (Map.Entry<Integer, Integer> hint : enableHints.entrySet())
             GLFW.glfwWindowHint(hint.getKey(), hint.getValue());
 
+        if (((GLFWWindowRenderContext)context).debugContext)
+            GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_DEBUG_CONTEXT, GLFW.GLFW_TRUE);
+
         // create window
         handle = GLFW.glfwCreateWindow(
                 size.getX(), size.getY(),

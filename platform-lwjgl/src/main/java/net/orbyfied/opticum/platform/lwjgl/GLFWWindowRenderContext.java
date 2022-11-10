@@ -22,15 +22,26 @@ public class GLFWWindowRenderContext extends WindowRenderContext<GLFWWindow> imp
         GLFW.glfwSetErrorCallback(GLFWErrorCallback.createPrint(System.out));
     }
 
+    // the capabilities cached
     protected GLCapabilities glCapabilities;
+
+    // if debug context is enabled
+    protected boolean debugContext = true;
 
     @Override
     public void switchContext() {
         // switch context
         GLFW.glfwMakeContextCurrent(window.handle);
-        if (glCapabilities == null)
+        if (glCapabilities == null) {
             // initialize GL
             glCapabilities = GL.createCapabilities();
+
+            // debugging
+            if (debugContext) {
+                GLUtil.setupDebugMessageCallback();
+            }
+        }
+
         GL.setCapabilities(glCapabilities);
     }
 
